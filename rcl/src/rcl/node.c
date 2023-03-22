@@ -30,6 +30,7 @@ extern "C"
 #include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
+#include "rcl/node_type_cache.h"
 #include "rcl/rcl.h"
 #include "rcl/remap.h"
 #include "rcl/security.h"
@@ -49,21 +50,16 @@ extern "C"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
+#include "rosidl_runtime_c/string_functions.h"
+#include "rosidl_runtime_c/type_description/type_description__functions.h"
 #include "tracetools/tracetools.h"
+#include "type_description_interfaces/srv/get_type_description.h"
 
 #include "./context_impl.h"
+#include "./node_impl.h"
+
 
 const char * const RCL_DISABLE_LOANED_MESSAGES_ENV_VAR = "ROS_DISABLE_LOANED_MESSAGES";
-
-struct rcl_node_impl_s
-{
-  rcl_node_options_t options;
-  rmw_node_t * rmw_node_handle;
-  rcl_guard_condition_t * graph_guard_condition;
-  const char * logger_name;
-  const char * fq_name;
-};
-
 
 /// Return the logger name associated with a node given the validated node name and namespace.
 /**
@@ -207,6 +203,8 @@ rcl_node_init(
   node->impl->logger_name = NULL;
   node->impl->fq_name = NULL;
   node->impl->options = rcl_node_get_default_options();
+  node->impl->registered_types_by_type_hash = NULL;
+  node->impl->get_type_description_service = NULL;
   node->context = context;
   // Initialize node impl.
   ret = rcl_node_options_copy(options, &(node->impl->options));
@@ -284,6 +282,23 @@ rcl_node_init(
     // error message already set
     goto fail;
   }
+
+  // Initialize the node type cache hash map
+  ret = rcl_node_type_cache_init(node);
+  if (ret != RCL_RET_OK) {
+    // error message already set
+    goto fail;
+  }
+
+  // Initialize ~/get_type_description service
+  if (node->impl->options.enable_type_description_service) {
+    ret = rcl_node_type_description_service_init(node);
+    if (ret != RCL_RET_OK) {
+      // error message already set
+      goto fail;
+    }
+  }
+
   // The initialization for the rosout publisher requires the node to be in initialized to a point
   // that it can create new topic publishers
   if (rcl_logging_rosout_enabled() && node->impl->options.enable_rosout) {
@@ -293,6 +308,7 @@ rcl_node_init(
       goto fail;
     }
   }
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized");
   ret = RCL_RET_OK;
   TRACEPOINT(
@@ -304,6 +320,11 @@ rcl_node_init(
   goto cleanup;
 fail:
   if (node->impl) {
+    ret = rcl_node_type_description_service_fini(node);
+    RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+        (ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT), ROS_PACKAGE_NAME,
+        "Failed to fini get_type_description service for node: %i", ret);
+
     if (rcl_logging_rosout_enabled() &&
       node->impl->options.enable_rosout &&
       node->impl->logger_name)
@@ -380,6 +401,12 @@ rcl_node_fini(rcl_node_t * node)
       RCL_SET_ERROR_MSG("Unable to fini publisher for node.");
       result = RCL_RET_ERROR;
     }
+  }
+
+  rcl_ret = rcl_node_type_cache_fini(node);
+  if (rcl_ret != RCL_RET_OK && rcl_ret != RCL_RET_NOT_INIT) {
+    RCL_SET_ERROR_MSG("Unable to fini type cache for node.");
+    result = RCL_RET_ERROR;
   }
   rmw_ret_t rmw_ret = rmw_destroy_node(node->impl->rmw_node_handle);
   if (rmw_ret != RMW_RET_OK) {
@@ -536,6 +563,151 @@ rcl_get_disable_loaned_message(bool * disable_loaned_message)
   *disable_loaned_message = (strcmp(env_val, "1") == 0);
   return RCL_RET_OK;
 }
+
+static void rcl_node_type_cache_handle_service_call(const void *user_data,
+                                                    size_t number_of_events) {
+  (void)number_of_events;
+  rmw_request_id_t request_header;
+  type_description_interfaces__srv__GetTypeDescription_Request request;
+  type_description_interfaces__srv__GetTypeDescription_Response response;
+  rcl_node_type_cache_type_info_t type_info;
+
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+      user_data, "type description service callback: Passed user data is NULL",
+      return;);
+
+  const rcl_node_t *node = user_data;
+  const char *node_name = rcl_node_get_name(node);
+
+  if (!(type_description_interfaces__srv__GetTypeDescription_Request__init(
+            &request) &&
+        type_description_interfaces__srv__GetTypeDescription_Response__init(
+            &response))) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME,
+                            "Failed to initialize service request / response.");
+    goto cleanup;
+  }
+
+  if (RCL_RET_OK != rcl_take_request(node->impl->get_type_description_service,
+                                     &request_header, &request)) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to take request");
+    goto cleanup;
+  }
+
+  // TODO(achim-k): Remove debug logging.
+  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME,
+                         "type_description service called for node '%s' with "
+                         "type version hash '%s'",
+                         node_name, request.type_hash.data);
+
+  rcl_ret_t ret = rcl_node_type_cache_get_type_info(
+      node, request.type_hash.data, &type_info);
+
+  if (RCUTILS_RET_OK == ret) {
+    // TODO(achim-k): Populate response
+    response.successful = true;
+  } else {
+    response.successful = false;
+    // TODO(achim-k): Populate reason
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME,
+                            "Type '%s' not found in type cache",
+                            request.type_hash.data);
+  }
+
+  if (RCL_RET_OK != rcl_send_response(node->impl->get_type_description_service,
+                                      &request_header, &response)) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to send response");
+  }
+
+cleanup:
+  type_description_interfaces__srv__GetTypeDescription_Request__fini(&request);
+  type_description_interfaces__srv__GetTypeDescription_Response__fini(
+      &response);
+}
+
+rcl_ret_t rcl_node_type_description_service_init(rcl_node_t *node) {
+  rcl_allocator_t *allocator = NULL;
+  char *serviceName = NULL;
+  const rosidl_service_type_support_t *type_support =
+      ROSIDL_GET_SRV_TYPE_SUPPORT(type_description_interfaces, srv,
+                                  GetTypeDescription);
+  // TODO(achim-k): Pass in as argument?
+  rcl_service_options_t service_ops = rcl_service_get_default_options();
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (NULL != node->impl->get_type_description_service) {
+    RCL_SET_ERROR_MSG("Service already initialized");
+    return RCL_RET_ALREADY_INIT;
+  }
+
+  allocator = &node->context->impl->allocator;
+
+  node->impl->get_type_description_service =
+      allocator->allocate(sizeof(rcl_service_t), allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->get_type_description_service,
+                              "bad alloc", return RCL_RET_BAD_ALLOC);
+
+  *node->impl->get_type_description_service =
+      rcl_get_zero_initialized_service();
+
+  if (RCL_RET_OK != rcl_node_resolve_name(node, "~/get_type_description",
+                                          *allocator, true, true,
+                                          &serviceName)) {
+    RCL_SET_ERROR_MSG(
+        "Failed to construct type description service name for node");
+    allocator->deallocate(node->impl->get_type_description_service,
+                          allocator->state);
+    node->impl->get_type_description_service = NULL;
+    return RCL_RET_ERROR;
+  }
+
+  if (RCL_RET_OK != rcl_service_init(node->impl->get_type_description_service,
+                                     node, type_support, serviceName,
+                                     &service_ops)) {
+    RCL_SET_ERROR_MSG(
+        "Failed to construct type description service name for node");
+    allocator->deallocate(node->impl->get_type_description_service,
+                          allocator->state);
+    node->impl->get_type_description_service = NULL;
+    return RCL_RET_ERROR;
+  }
+
+  if (RCL_RET_OK != rcl_service_set_on_new_request_callback(
+                        node->impl->get_type_description_service,
+                        rcl_node_type_cache_handle_service_call, node)) {
+    RCL_SET_ERROR_MSG(
+        "Failed to set callback on type description service for node");
+    if (RCL_RET_OK !=
+        rcl_service_fini(node->impl->get_type_description_service, node)) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini service");
+    }
+    allocator->deallocate(node->impl->get_type_description_service,
+                          allocator->state);
+    node->impl->get_type_description_service = NULL;
+    return RCL_RET_ERROR;
+  }
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t rcl_node_type_description_service_fini(rcl_node_t *node) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->get_type_description_service,
+                              "type description service not initialized",
+                              return RCL_RET_NOT_INIT);
+
+  rcl_ret_t ret =
+      rcl_service_fini(node->impl->get_type_description_service, node);
+  if (RCL_RET_OK == ret) {
+    node->context->impl->allocator.deallocate(
+        node->impl->get_type_description_service,
+        node->context->impl->allocator.state);
+    node->impl->get_type_description_service = NULL;
+  }
+
+  return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif

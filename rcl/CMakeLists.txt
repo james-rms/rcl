@@ -13,6 +13,7 @@ find_package(rmw_implementation REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(service_msgs REQUIRED)
 find_package(tracetools REQUIRED)
+find_package(type_description_interfaces REQUIRED)
 
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 include(cmake/get_default_rcl_logging_implementation.cmake)
@@ -54,6 +55,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/network_flow_endpoints.c
   src/rcl/node.c
   src/rcl/node_options.c
+  src/rcl/node_type_cache.c
   src/rcl/publisher.c
   src/rcl/remap.c
   src/rcl/node_resolve_name.c
@@ -86,6 +88,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rosidl_runtime_c"
   "service_msgs"
   "tracetools"
+  "type_description_interfaces"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -127,6 +130,7 @@ ament_export_dependencies(${RCL_LOGGING_IMPL})
 ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(service_msgs)
 ament_export_dependencies(tracetools)
+ament_export_dependencies(type_description_interfaces)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

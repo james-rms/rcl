@@ -24,6 +24,7 @@ struct rcl_subscription_impl_s
   rcl_subscription_options_t options;
   rmw_qos_profile_t actual_qos;
   rmw_subscription_t * rmw_handle;
+  const rosidl_message_type_support_t * type_support;
 };
 
 #endif  // RCL__SUBSCRIPTION_IMPL_H_
