@@ -13,8 +13,7 @@
 // limitations under the License.
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include "rcl/node_type_cache.h"
@@ -46,8 +45,9 @@ rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
 
   rcl_ret_t ret = rcutils_hash_map_init(
       node->impl->registered_types_by_type_hash, 2, sizeof(const char *),
-      sizeof(rcl_node_type_cache_type_info_t), rcutils_hash_map_string_hash_func,
-      rcutils_hash_map_string_cmp_func, &node->context->impl->allocator);
+      sizeof(rcl_node_type_cache_type_info_t),
+      rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func,
+      &node->context->impl->allocator);
 
   if (RCUTILS_RET_OK != ret) {
     RCL_SET_ERROR_MSG("Failed to initialize type cache hash map");
@@ -78,13 +78,23 @@ rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t *node) {
 rcl_ret_t rcl_node_type_cache_register_msg_type(
     const rcl_node_t *node, const rosidl_message_type_support_t *type_support) {
   rcl_node_type_cache_type_info_t type_info;
-  const char *type_hash =
-      "achim";  // TODO(achim-k): Get hash from type_support;
+  char *type_hash = NULL;
+
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->registered_types_by_type_hash,
                               "type cache not initialized",
                               return RCL_RET_NOT_INIT);
+  if (RCUTILS_RET_OK !=
+      rosidl_stringify_type_hash(type_support->type_hash,
+                                 rcutils_get_default_allocator(), &type_hash)) {
+    RCL_SET_ERROR_MSG("Failed to stringify type hash");
+    return RCL_RET_ERROR;
+  }
+
+  // TODO(achim-k): Remove log statement
+  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Registering type with hash %s",
+                         type_hash);
 
   if (rcutils_hash_map_key_exists(node->impl->registered_types_by_type_hash,
                                   &type_hash)) {
@@ -116,13 +126,19 @@ rcl_ret_t rcl_node_type_cache_register_msg_type(
 rcl_ret_t rcl_node_type_cache_unregister_msg_type(
     const rcl_node_t *node, const rosidl_message_type_support_t *type_support) {
   rcl_node_type_cache_type_info_t type_info;
-  const char *type_hash =
-      "achim";  // TODO(achim-k): Get hash from type_support;
+  char *type_hash = NULL;
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->registered_types_by_type_hash,
                               "type cache not initialized",
                               return RCL_RET_NOT_INIT);
+
+  if (RCUTILS_RET_OK !=
+      rosidl_stringify_type_hash(type_support->type_hash,
+                                 rcutils_get_default_allocator(), &type_hash)) {
+    RCL_SET_ERROR_MSG("Failed to stringify type hash");
+    return RCL_RET_ERROR;
+  }
 
   if (RCUTILS_RET_OK !=
       rcutils_hash_map_get(node->impl->registered_types_by_type_hash,
@@ -153,10 +169,9 @@ rcl_ret_t rcl_node_type_cache_unregister_msg_type(
   return RCL_RET_OK;
 }
 
-
-rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t *node,
-                                            const char *type_hash,
-                                            rcl_node_type_cache_type_info_t *type_info) {
+rcl_ret_t rcl_node_type_cache_get_type_info(
+    const rcl_node_t *node, const char *type_hash,
+    rcl_node_type_cache_type_info_t *type_info) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_info, RCL_RET_INVALID_ARGUMENT);
@@ -164,11 +179,10 @@ rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t *node,
                               "type cache not initialized",
                               return RCL_RET_NOT_INIT);
 
-  rcutils_ret_t ret = rcutils_hash_map_get(node->impl->registered_types_by_type_hash,
-                           &type_hash, type_info);
+  rcutils_ret_t ret = rcutils_hash_map_get(
+      node->impl->registered_types_by_type_hash, &type_hash, type_info);
   return RCUTILS_RET_OK == ret ? RCL_RET_OK : RCL_RET_ERROR;
 }
-
 
 #ifdef __cplusplus
 }
