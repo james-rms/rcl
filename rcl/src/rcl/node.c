@@ -606,12 +606,14 @@ static void rcl_node_type_cache_handle_service_call(const void *user_data,
   if (RCUTILS_RET_OK == ret) {
     // TODO(achim-k): Populate response
     response.successful = true;
+    response.type_description = *type_info.type_description;
   } else {
     response.successful = false;
     // TODO(achim-k): Populate reason
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME,
                             "Type '%s' not found in type cache",
                             request.type_hash.data);
+    rosidl_runtime_c__String__assign(&response.failure_reason, "Type or hash not found in type cache");
   }
 
   if (RCL_RET_OK != rcl_send_response(node->impl->get_type_description_service,

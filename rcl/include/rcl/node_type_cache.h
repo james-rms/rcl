@@ -19,7 +19,9 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 #include "rosidl_runtime_c/message_type_support_struct.h"
-#include "rosidl_runtime_c/type_description/type_description__struct.h"
+#include "rosidl_runtime_c/service_type_support_struct.h"
+#include "rosidl_runtime_c/action_type_support_struct.h"
+#include "type_description_interfaces/msg/type_description.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +31,7 @@ typedef struct rcl_node_type_cache_type_info_t {
   size_t numRegistrations;
 
   // TODO(achim-k): Add remaining fields
-  const rosidl_runtime_c__type_description__TypeDescription* type_description;
+  const type_description_interfaces__msg__TypeDescription * type_description;
 } rcl_node_type_cache_type_info_t;
 
 RCL_PUBLIC
@@ -49,6 +51,26 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_unregister_msg_type(
     const rcl_node_t* node, const rosidl_message_type_support_t* type_support);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t rcl_node_type_cache_register_srv_type(
+    const rcl_node_t* node, const rosidl_service_type_support_t* type_support);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t rcl_node_type_cache_unregister_srv_type(
+    const rcl_node_t* node, const rosidl_service_type_support_t* type_support);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t rcl_node_type_cache_register_action_type(
+    const rcl_node_t* node, const rosidl_action_type_support_t* type_support);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t rcl_node_type_cache_unregister_action_type(
+    const rcl_node_t* node, const rosidl_action_type_support_t* type_support);
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
