@@ -48,6 +48,8 @@ struct rcl_service_impl_s
   rmw_service_t * rmw_handle;
   rcl_service_event_publisher_t * service_event_publisher;
   char * remapped_service_name;
+  // Assumption: the type_support used to create the service outlives any
+  // service it is used for
   const rosidl_service_type_support_t * type_support;
 };
 

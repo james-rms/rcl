@@ -25,6 +25,8 @@ struct rcl_publisher_impl_s
   rmw_qos_profile_t actual_qos;
   rcl_context_t * context;
   rmw_publisher_t * rmw_handle;
+  // Assumption: the type_support used to create the publisher outlives any
+  // publisher it is used for
   const rosidl_message_type_support_t * type_support;
 };
 

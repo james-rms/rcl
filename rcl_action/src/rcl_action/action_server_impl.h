@@ -39,7 +39,8 @@ typedef struct rcl_action_server_impl_s
   size_t wait_set_cancel_service_index;
   size_t wait_set_result_service_index;
   size_t wait_set_expire_timer_index;
-  // Type support
+  // Assumption: the type_support used to create the action server outlives any
+  // action erver it is used for
   const rosidl_action_type_support_t * type_support;
 } rcl_action_server_impl_t;
 
