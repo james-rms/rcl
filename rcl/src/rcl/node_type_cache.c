@@ -159,7 +159,7 @@ rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
   *node->impl->registered_types_by_type_hash =
       rcutils_get_zero_initialized_hash_map();
 
-  rcl_ret_t ret = rcutils_hash_map_init(
+  rcutils_ret_t ret = rcutils_hash_map_init(
       node->impl->registered_types_by_type_hash, 2, sizeof(const char *),
       sizeof(rcl_type_info_t),
       rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func,
