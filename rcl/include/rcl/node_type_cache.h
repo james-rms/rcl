@@ -27,12 +27,12 @@
 extern "C" {
 #endif
 
-typedef struct rcl_node_type_cache_type_info_t {
+typedef struct rcl_type_info_t {
   size_t numRegistrations;
 
   // TODO(achim-k): Add remaining fields
-  const type_description_interfaces__msg__TypeDescription * type_description;
-} rcl_node_type_cache_type_info_t;
+  const type_description_interfaces__msg__TypeDescription* type_description;
+} rcl_type_info_t;
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -74,9 +74,9 @@ rcl_ret_t rcl_node_type_cache_unregister_action_type(
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_get_type_info(
-    const rcl_node_t* node, const char* type_hash,
-    rcl_node_type_cache_type_info_t* type_info);
+rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t* node,
+                                            const char* type_hash,
+                                            rcl_type_info_t* type_info);
 
 #ifdef __cplusplus
 }

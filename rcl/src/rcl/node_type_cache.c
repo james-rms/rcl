@@ -29,7 +29,7 @@ extern "C" {
 static rcl_ret_t rcl_node_type_cache_unregister_type_info(
     const rcl_node_t *node, const rosidl_type_hash_t *type_hash) {
   char *type_hash_str = NULL;
-  rcl_node_type_cache_type_info_t type_info;
+  rcl_type_info_t type_info;
 
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
@@ -82,7 +82,7 @@ static rcl_ret_t rcl_node_type_cache_register_type_info(
     const rosidl_runtime_c__type_description__TypeDescription
         *type_description) {
   char *type_hash_str = NULL;
-  rcl_node_type_cache_type_info_t type_info;
+  rcl_type_info_t type_info;
 
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
@@ -161,7 +161,7 @@ rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
 
   rcl_ret_t ret = rcutils_hash_map_init(
       node->impl->registered_types_by_type_hash, 2, sizeof(const char *),
-      sizeof(rcl_node_type_cache_type_info_t),
+      sizeof(rcl_type_info_t),
       rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func,
       &node->context->impl->allocator);
 
@@ -194,7 +194,7 @@ rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t *node) {
 
 rcl_ret_t rcl_node_type_cache_get_type_info(
     const rcl_node_t *node, const char *type_hash,
-    rcl_node_type_cache_type_info_t *type_info) {
+    rcl_type_info_t *type_info) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_info, RCL_RET_INVALID_ARGUMENT);

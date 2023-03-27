@@ -84,7 +84,7 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
   const rosidl_message_type_support_t* ts =
       ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   const char* type_hash = "some_hash";
-  rcl_node_type_cache_type_info_t type_info;
+  rcl_type_info_t type_info;
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_init(NULL));
   rcl_reset_error();
@@ -135,7 +135,7 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
   }
 
   {
-    rcl_node_type_cache_type_info_t type_info;
+    rcl_type_info_t type_info;
     EXPECT_EQ(RCL_RET_OK, rcl_node_type_cache_get_type_info(
                               this->node_ptr, type_hash, &type_info));
     EXPECT_EQ(nRegistrations, type_info.numRegistrations);
@@ -148,7 +148,7 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
   }
 
   const size_t numExpectedRegistrations = nRegistrations - nUnregistrations;
-  rcl_node_type_cache_type_info_t type_info;
+  rcl_type_info_t type_info;
   EXPECT_EQ(RCL_RET_OK, rcl_node_type_cache_get_type_info(
                             this->node_ptr, type_hash, &type_info));
   EXPECT_EQ(numExpectedRegistrations, type_info.numRegistrations);

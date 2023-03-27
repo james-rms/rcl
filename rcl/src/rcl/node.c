@@ -570,7 +570,7 @@ static void rcl_node_type_cache_handle_service_call(const void *user_data,
   rmw_request_id_t request_header;
   type_description_interfaces__srv__GetTypeDescription_Request request;
   type_description_interfaces__srv__GetTypeDescription_Response response;
-  rcl_node_type_cache_type_info_t type_info;
+  rcl_type_info_t type_info;
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
       user_data, "type description service callback: Passed user data is NULL",
