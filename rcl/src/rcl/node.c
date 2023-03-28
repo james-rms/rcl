@@ -601,20 +601,29 @@ static void rcl_node_type_cache_handle_service_call(const void *user_data,
                          "type version hash '%s'",
                          node_name, request.type_hash.data);
 
-  rcl_ret_t ret = rcl_node_type_cache_get_type_info(
-      node, request.type_hash.data, &type_info);
+  rosidl_type_hash_t type_hash;
+  if (RCUTILS_RET_OK !=
+      rosidl_parse_type_hash_string(request.type_hash.data, &type_hash)) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to parse type hash '%s'",
+                            request.type_hash.data);
+  }
+
+  rcl_ret_t ret =
+      rcl_node_type_cache_get_type_info(node, &type_hash, &type_info);
 
   if (RCUTILS_RET_OK == ret) {
     // TODO(achim-k): Populate response
     response.successful = true;
-    response.type_description = *type_info.type_description;
+    type_description_interfaces__msg__TypeDescription__copy(
+        type_info.type_description, &response.type_description);
   } else {
     response.successful = false;
     // TODO(achim-k): Populate reason
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME,
                             "Type '%s' not found in type cache",
                             request.type_hash.data);
-    rosidl_runtime_c__String__assign(&response.failure_reason, "Type or hash not found in type cache");
+    rosidl_runtime_c__String__assign(&response.failure_reason,
+                                     "Type or hash not found in type cache");
   }
 
   if (RCL_RET_OK != rcl_send_response(node->impl->get_type_description_service,

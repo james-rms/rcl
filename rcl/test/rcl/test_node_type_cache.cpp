@@ -77,7 +77,6 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
        test_type_cache_invalid_args) {
   const rosidl_message_type_support_t* ts =
       ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char* type_hash = "some_hash";
   rcl_type_info_t type_info;
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_init(NULL));
@@ -106,13 +105,13 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_get_type_info(NULL, type_hash, &type_info));
+            rcl_node_type_cache_get_type_info(NULL, ts->type_hash, &type_info));
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_get_type_info(
                                           this->node_ptr, NULL, &type_info));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_get_type_info(this->node_ptr, type_hash, NULL));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_get_type_info(
+                                          this->node_ptr, ts->type_hash, NULL));
   rcl_reset_error();
 }
 
@@ -122,23 +121,18 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
       ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   rcl_type_info_t type_info;
 
-  char* type_hash = NULL;
-  ASSERT_EQ(RCUTILS_RET_OK,
-            rosidl_stringify_type_hash(
-                ts->type_hash, rcutils_get_default_allocator(), &type_hash));
-
   // Register once
   EXPECT_EQ(RCL_RET_OK,
             rcl_node_type_cache_register_type(this->node_ptr, ts->type_hash,
                                               ts->type_description));
   EXPECT_EQ(RCL_RET_OK, rcl_node_type_cache_get_type_info(
-                            this->node_ptr, type_hash, &type_info));
+                            this->node_ptr, ts->type_hash, &type_info));
 
   // Unregister once and confirm that it got removed from the type cache
   EXPECT_EQ(RCL_RET_OK,
             rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
   EXPECT_EQ(RCL_RET_ERROR, rcl_node_type_cache_get_type_info(
-                               this->node_ptr, type_hash, &type_info));
+                               this->node_ptr, ts->type_hash, &type_info));
   rcl_reset_error();
 
   // Register twice and unregister once. Type info should still be available
@@ -151,7 +145,7 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
   EXPECT_EQ(RCL_RET_OK,
             rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
   EXPECT_EQ(RCL_RET_OK, rcl_node_type_cache_get_type_info(
-                            this->node_ptr, type_hash, &type_info));
+                            this->node_ptr, ts->type_hash, &type_info));
 }
 
 TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),

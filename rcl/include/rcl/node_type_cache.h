@@ -143,7 +143,7 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
  * Lock-Free          | Yes
  *
  * \param[in] node the handle to the node whose type cache should be queried
- * \param[in] type_hash stringified type hash
+ * \param[in] type_hash type hash
  * \param[out] type_info pointer to the type info struct that will be populated
  * \return #RCL_RET_OK if type information was retrieved successfully
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
@@ -153,7 +153,7 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t* node,
-                                            const char* type_hash,
+                                            const rosidl_type_hash_t *type_hash,
                                             rcl_type_info_t* type_info);
 
 #ifdef __cplusplus

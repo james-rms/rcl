@@ -34,13 +34,25 @@ typedef struct rcl_type_info_with_registration_count_t {
   rcl_type_info_t type_info;
 } rcl_type_info_with_registration_count_t;
 
+size_t get_type_hash_hashmap_key(const void *key) {
+  // Reinterpret-cast the first sizeof(size_t) bytes of the hash value
+  const rosidl_type_hash_t *type_hash = key;
+  return (size_t)type_hash->value[0];
+}
+
+int cmp_type_hash(const void *val1, const void *val2) {
+  const rosidl_type_hash_t *hash1 = val1;
+  const rosidl_type_hash_t *hash2 = val2;
+  return memcmp(hash1->value, hash2->value, ROSIDL_TYPE_HASH_SIZE);
+}
+
 rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
 
   rcutils_ret_t ret = rcutils_hash_map_init(
-      &node->impl->registered_types_by_type_hash, 2, sizeof(const char *),
+      &node->impl->registered_types_by_type_hash, 2, sizeof(rosidl_type_hash_t),
       sizeof(rcl_type_info_with_registration_count_t),
-      rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func,
+      get_type_hash_hashmap_key, cmp_type_hash,
       &node->context->impl->allocator);
 
   if (RCUTILS_RET_OK != ret) {
@@ -61,7 +73,7 @@ rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t *node) {
 }
 
 rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t *node,
-                                            const char *type_hash,
+                                            const rosidl_type_hash_t *type_hash,
                                             rcl_type_info_t *type_info) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
@@ -71,12 +83,13 @@ rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t *node,
 
   rcutils_ret_t ret =
       rcutils_hash_map_get(&node->impl->registered_types_by_type_hash,
-                           &type_hash, &type_info_with_registrations);
+                           type_hash, &type_info_with_registrations);
   if (RCUTILS_RET_OK == ret) {
     *type_info = type_info_with_registrations.type_info;
+    return RCL_RET_OK;
   }
 
-  return RCUTILS_RET_OK == ret ? RCL_RET_OK : RCL_RET_ERROR;
+  return RCL_RET_ERROR;
 }
 
 rcl_ret_t rcl_node_type_cache_register_type(
@@ -106,10 +119,10 @@ rcl_ret_t rcl_node_type_cache_register_type(
   // If the type already exists, we only have to increment the registration
   // count.
   if (rcutils_hash_map_key_exists(&node->impl->registered_types_by_type_hash,
-                                  &type_hash_str)) {
+                                  type_hash)) {
     if (RCUTILS_RET_OK !=
         rcutils_hash_map_get(&node->impl->registered_types_by_type_hash,
-                             &type_hash_str, &type_info)) {
+                             type_hash, &type_info)) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Failed to retrieve type info for type '%s'", type_hash_str);
       return RCL_RET_ERROR;
@@ -131,7 +144,7 @@ rcl_ret_t rcl_node_type_cache_register_type(
   // Update the hash map entry.
   if (RCUTILS_RET_OK !=
       rcutils_hash_map_set(&node->impl->registered_types_by_type_hash,
-                           &type_hash_str, &type_info)) {
+                           type_hash, &type_info)) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Failed to update type info for type '%s'", type_hash_str);
     return RCL_RET_ERROR;
@@ -161,7 +174,7 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
 
   if (RCUTILS_RET_OK !=
       rcutils_hash_map_get(&node->impl->registered_types_by_type_hash,
-                           &type_hash_str, &type_info)) {
+                           type_hash, &type_info)) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deregister type '%s'",
                                          type_hash_str);
     return RCL_RET_ERROR;
@@ -170,7 +183,7 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
   if (--type_info.numRegistrations > 0) {
     if (RCUTILS_RET_OK !=
         rcutils_hash_map_set(&node->impl->registered_types_by_type_hash,
-                             &type_hash_str, &type_info)) {
+                             type_hash, &type_info)) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Failed to update type info for type '%s'", type_hash_str);
       return RCL_RET_ERROR;
@@ -178,7 +191,7 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
   } else {
     if (RCUTILS_RET_OK !=
         rcutils_hash_map_unset(&node->impl->registered_types_by_type_hash,
-                               &type_hash_str)) {
+                               type_hash)) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Failed to unregister type info for type '%s'", type_hash_str);
       return RCL_RET_ERROR;
