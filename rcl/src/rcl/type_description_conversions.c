@@ -25,20 +25,28 @@ extern "C" {
 static bool convert_individual_type_description(
     const rosidl_runtime_c__type_description__IndividualTypeDescription *in,
     type_description_interfaces__msg__IndividualTypeDescription *out) {
-  bool success =
-      type_description_interfaces__msg__IndividualTypeDescription__init(out);
-  success &= rosidl_runtime_c__String__copy(&in->type_name, &out->type_name);
-  success &= type_description_interfaces__msg__Field__Sequence__init(
-      &out->fields, in->fields.size);
+  const size_t nFields = in->fields.size;
+  const bool success =
+      type_description_interfaces__msg__IndividualTypeDescription__init(out) &&
+      rosidl_runtime_c__String__copy(&in->type_name, &out->type_name) &&
+      type_description_interfaces__msg__Field__Sequence__init(&out->fields,
+                                                              nFields);
+  if (!success) {
+    goto error;
+  }
 
-  for (size_t i = 0; success && i < in->fields.size; ++i) {
-    success &= rosidl_runtime_c__String__copy(&(in->fields.data[i].name),
-                                              &(out->fields.data[i].name));
+  for (size_t i = 0; i < in->fields.size; ++i) {
+    if (!rosidl_runtime_c__String__copy(&(in->fields.data[i].name),
+                                        &(out->fields.data[i].name))) {
+      goto error;
+    }
 
-    if (in->fields.data[i].default_value.data) {
-      success &=
-          rosidl_runtime_c__String__copy(&(in->fields.data[i].default_value),
-                                        &(out->fields.data[i].default_value));
+    if (in->fields.data[i].default_value.size) {
+      if (!rosidl_runtime_c__String__copy(
+              &(in->fields.data[i].default_value),
+              &(out->fields.data[i].default_value))) {
+        goto error;
+      }
     }
 
     // type_id
@@ -50,18 +58,20 @@ static bool convert_individual_type_description(
         in->fields.data[i].type.string_capacity;
 
     // nested_type_name
-    if (in->fields.data[i].type.nested_type_name.data) {
-      success &= rosidl_runtime_c__String__copy(
-          &(in->fields.data[i].type.nested_type_name),
-          &(out->fields.data[i].type.nested_type_name));
+    if (in->fields.data[i].type.nested_type_name.size) {
+      if (!rosidl_runtime_c__String__copy(
+              &(in->fields.data[i].type.nested_type_name),
+              &(out->fields.data[i].type.nested_type_name))) {
+        goto error;
+      }
     }
   }
 
-  if (!success) {
-    type_description_interfaces__msg__Field__Sequence__fini(&out->fields);
-  }
+  return true;
 
-  return success;
+error:
+  type_description_interfaces__msg__IndividualTypeDescription__fini(out);
+  return false;
 }
 
 type_description_interfaces__msg__TypeDescription *
