@@ -50,8 +50,6 @@ typedef struct rcl_type_info_t {
  * \param[in] node the handle to the node whose type cache should be initialized
  * \return #RCL_RET_OK if the node's type cache was successfully initialized, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_ALREADY_INIT if the type cache is already initialized, or
- * \return #RCL_RET_BAD_ALLOC if memory allocation for the hash map failed, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -74,7 +72,6 @@ rcl_ret_t rcl_node_type_cache_init(const rcl_node_t* node);
  * \param[in] node the handle to the node whose type cache should be finalized
  * \return #RCL_RET_OK if the node's type cache was successfully finalized, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NOT_INIT if the type cache was not initialized, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -99,7 +96,6 @@ rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t* node);
  * \param[in] type_support type support handle
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NOT_INIT if the type cache was not initialized, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -126,7 +122,6 @@ rcl_ret_t rcl_node_type_cache_register_msg_type(
  * \param[in] type_support type support handle
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NOT_INIT if the type cache was not initialized, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -152,7 +147,6 @@ rcl_ret_t rcl_node_type_cache_unregister_msg_type(
  * \param[in] type_support type support handle
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NOT_INIT if the type cache was not initialized, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -179,7 +173,6 @@ rcl_ret_t rcl_node_type_cache_register_srv_type(
  * \param[in] type_support type support handle
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NOT_INIT if the type cache was not initialized, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -205,7 +198,6 @@ rcl_ret_t rcl_node_type_cache_unregister_srv_type(
  * \param[in] type_support type support handle
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NOT_INIT if the type cache was not initialized, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -232,7 +224,6 @@ rcl_ret_t rcl_node_type_cache_register_action_type(
  * \param[in] type_support type support handle
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NOT_INIT if the type cache was not initialized, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC

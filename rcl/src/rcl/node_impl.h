@@ -28,7 +28,7 @@ struct rcl_node_impl_s
   rcl_guard_condition_t * graph_guard_condition;
   const char * logger_name;
   const char * fq_name;
-  rcutils_hash_map_t * registered_types_by_type_hash;
+  rcutils_hash_map_t registered_types_by_type_hash;
   rcl_service_t * get_type_description_service;
 };
 

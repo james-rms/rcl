@@ -74,12 +74,6 @@ class CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION)
 };
 
 TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
-       test_type_cache_init_with_node_init) {
-  EXPECT_EQ(RCL_RET_ALREADY_INIT, rcl_node_type_cache_init(this->node_ptr));
-  rcl_reset_error();
-}
-
-TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
        test_type_cache_invalid_args) {
   const rosidl_message_type_support_t* ts =
       ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);

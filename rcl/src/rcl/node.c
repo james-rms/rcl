@@ -44,6 +44,7 @@ extern "C"
 #include "rcutils/repl_str.h"
 #include "rcutils/snprintf.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/hash_map.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/security_options.h"
@@ -203,7 +204,7 @@ rcl_node_init(
   node->impl->logger_name = NULL;
   node->impl->fq_name = NULL;
   node->impl->options = rcl_node_get_default_options();
-  node->impl->registered_types_by_type_hash = NULL;
+  node->impl->registered_types_by_type_hash = rcutils_get_zero_initialized_hash_map();
   node->impl->get_type_description_service = NULL;
   node->context = context;
   // Initialize node impl.

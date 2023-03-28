@@ -33,9 +33,6 @@ static rcl_ret_t rcl_node_type_cache_unregister_type_info(
 
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->registered_types_by_type_hash,
-                              "type cache not initialized",
-                              return RCL_RET_NOT_INIT);
 
   // Convert hash to string
   if (RCUTILS_RET_OK !=
@@ -49,7 +46,7 @@ static rcl_ret_t rcl_node_type_cache_unregister_type_info(
   RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "U: %s", type_hash_str);
 
   if (RCUTILS_RET_OK !=
-      rcutils_hash_map_get(node->impl->registered_types_by_type_hash,
+      rcutils_hash_map_get(&node->impl->registered_types_by_type_hash,
                            &type_hash_str, &type_info)) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deregister type '%s'",
                                          type_hash_str);
@@ -58,7 +55,7 @@ static rcl_ret_t rcl_node_type_cache_unregister_type_info(
 
   if (--type_info.numRegistrations > 0) {
     if (RCUTILS_RET_OK !=
-        rcutils_hash_map_set(node->impl->registered_types_by_type_hash,
+        rcutils_hash_map_set(&node->impl->registered_types_by_type_hash,
                              &type_hash_str, &type_info)) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Failed to update type info for type '%s'", type_hash_str);
@@ -66,7 +63,7 @@ static rcl_ret_t rcl_node_type_cache_unregister_type_info(
     }
   } else {
     if (RCUTILS_RET_OK !=
-        rcutils_hash_map_unset(node->impl->registered_types_by_type_hash,
+        rcutils_hash_map_unset(&node->impl->registered_types_by_type_hash,
                                &type_hash_str)) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Failed to unregister type info for type '%s'", type_hash_str);
@@ -87,9 +84,6 @@ static rcl_ret_t rcl_node_type_cache_register_type_info(
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_description, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->registered_types_by_type_hash,
-                              "type cache not initialized",
-                              return RCL_RET_NOT_INIT);
 
   // Convert hash to string
   if (RCUTILS_RET_OK !=
@@ -106,10 +100,10 @@ static rcl_ret_t rcl_node_type_cache_register_type_info(
 
   // If the type already exists, we only have to increment the registration
   // count.
-  if (rcutils_hash_map_key_exists(node->impl->registered_types_by_type_hash,
+  if (rcutils_hash_map_key_exists(&node->impl->registered_types_by_type_hash,
                                   &type_hash_str)) {
     if (RCUTILS_RET_OK !=
-        rcutils_hash_map_get(node->impl->registered_types_by_type_hash,
+        rcutils_hash_map_get(&node->impl->registered_types_by_type_hash,
                              &type_hash_str, &type_info)) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Failed to retrieve type info for type '%s'", type_hash_str);
@@ -131,7 +125,7 @@ static rcl_ret_t rcl_node_type_cache_register_type_info(
 
   // Update the hash map entry.
   if (RCUTILS_RET_OK !=
-      rcutils_hash_map_set(node->impl->registered_types_by_type_hash,
+      rcutils_hash_map_set(&node->impl->registered_types_by_type_hash,
                            &type_hash_str, &type_info)) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Failed to update type info for type '%s'", type_hash_str);
@@ -144,33 +138,14 @@ static rcl_ret_t rcl_node_type_cache_register_type_info(
 rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
 
-  if (NULL != node->impl->registered_types_by_type_hash) {
-    RCL_SET_ERROR_MSG("Type cache already initialized");
-    return RCL_RET_ALREADY_INIT;
-  }
-
-  node->impl->registered_types_by_type_hash =
-      node->context->impl->allocator.allocate(
-          sizeof(rcutils_hash_map_t), node->context->impl->allocator.state);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->registered_types_by_type_hash,
-                              "allocating memory failed",
-                              return RCL_RET_BAD_ALLOC);
-
-  *node->impl->registered_types_by_type_hash =
-      rcutils_get_zero_initialized_hash_map();
-
   rcutils_ret_t ret = rcutils_hash_map_init(
-      node->impl->registered_types_by_type_hash, 2, sizeof(const char *),
+      &node->impl->registered_types_by_type_hash, 2, sizeof(const char *),
       sizeof(rcl_type_info_t),
       rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func,
       &node->context->impl->allocator);
 
   if (RCUTILS_RET_OK != ret) {
     RCL_SET_ERROR_MSG("Failed to initialize type cache hash map");
-    node->context->impl->allocator.deallocate(
-        node->impl->registered_types_by_type_hash,
-        node->context->impl->allocator.state);
-    node->impl->registered_types_by_type_hash = NULL;
     return RCL_RET_ERROR;
   }
 
@@ -179,15 +154,9 @@ rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
 
 rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t *node) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->registered_types_by_type_hash,
-                              "type cache not initialized",
-                              return RCL_RET_NOT_INIT);
 
   rcutils_ret_t rcutils_ret =
-      rcutils_hash_map_fini(node->impl->registered_types_by_type_hash);
-  node->context->impl->allocator.deallocate(
-      node->impl->registered_types_by_type_hash,
-      node->context->impl->allocator.state);
+      rcutils_hash_map_fini(&node->impl->registered_types_by_type_hash);
 
   return RCUTILS_RET_OK == rcutils_ret ? RCL_RET_OK : RCL_RET_ERROR;
 }
@@ -198,12 +167,9 @@ rcl_ret_t rcl_node_type_cache_get_type_info(
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_info, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl->registered_types_by_type_hash,
-                              "type cache not initialized",
-                              return RCL_RET_NOT_INIT);
 
   rcutils_ret_t ret = rcutils_hash_map_get(
-      node->impl->registered_types_by_type_hash, &type_hash, type_info);
+      &node->impl->registered_types_by_type_hash, &type_hash, type_info);
   return RCUTILS_RET_OK == ret ? RCL_RET_OK : RCL_RET_ERROR;
 }
 
