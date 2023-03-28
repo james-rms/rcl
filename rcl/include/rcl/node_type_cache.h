@@ -18,9 +18,7 @@
 #include "rcl/node.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
-#include "rosidl_runtime_c/action_type_support_struct.h"
-#include "rosidl_runtime_c/message_type_support_struct.h"
-#include "rosidl_runtime_c/service_type_support_struct.h"
+#include "rosidl_runtime_c/type_description/type_description__struct.h"
 #include "type_description_interfaces/msg/type_description.h"
 
 #ifdef __cplusplus
@@ -28,8 +26,6 @@ extern "C" {
 #endif
 
 typedef struct rcl_type_info_t {
-  size_t numRegistrations;
-
   // TODO(achim-k): Add remaining fields
   const type_description_interfaces__msg__TypeDescription* type_description;
 } rcl_type_info_t;
@@ -78,11 +74,11 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t* node);
 
-/// Register a message type with the node's type cache.
+/// Register a type with the node's type cache.
 /**
- * This function extracts the type hash and type description from the given
- * `type_support` handle and registers it with the node's type cache. Multiple
- * registrations of the same type will increment its registration count.
+ * This function registers the given type, uniquely identified by the type_hash,
+ * with the node with the node's type cache. Multiple registrations of the same
+ * type will increment its registration count.
  *
  * <hr>
  * Attribute          | Adherence
@@ -93,15 +89,18 @@ rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t* node);
  * Lock-Free          | Yes
  *
  * \param[in] node the handle to the node whose type cache should be finalized
- * \param[in] type_support type support handle
+ * \param[in] type_hash hash of the type
+ * \param[in] type_description type description struct
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_register_msg_type(
-    const rcl_node_t* node, const rosidl_message_type_support_t* type_support);
+rcl_ret_t rcl_node_type_cache_register_type(
+    const rcl_node_t* node, const rosidl_type_hash_t* type_hash,
+    const rosidl_runtime_c__type_description__TypeDescription*
+        type_description);
 
 /// Unregister a message type from the node's type cache.
 /**
@@ -127,56 +126,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_unregister_type(
     const rcl_node_t* node, const rosidl_type_hash_t* type_hash);
-
-/// Register a service type with the node's type cache.
-/**
- * This function extracts the type hash and type description from the given
- * `type_support` handle and registers it with the node's type cache. Multiple
- * registrations of the same type will increment its registration count.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] node the handle to the node whose type cache should be finalized
- * \param[in] type_support type support handle
- * \return #RCL_RET_OK if the type was successfully registered, or
- * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_ERROR if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_register_srv_type(
-    const rcl_node_t* node, const rosidl_service_type_support_t* type_support);
-
-/// Register a action type with the node's type cache.
-/**
- * This function extracts the type hash and type description from the given
- * `type_support` handle and registers it with the node's type cache. Multiple
- * registrations of the same type will increment its registration count.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] node the handle to the node whose type cache should be finalized
- * \param[in] type_support type support handle
- * \return #RCL_RET_OK if the type was successfully registered, or
- * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_ERROR if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_register_action_type(
-    const rcl_node_t* node, const rosidl_action_type_support_t* type_support);
 
 /// Retrieve type information from the node's type cache.
 /**

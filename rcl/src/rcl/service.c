@@ -122,7 +122,9 @@ rcl_service_init(
     return RCL_RET_BAD_ALLOC;);
 
   // Register type.
-  if (RCL_RET_OK != rcl_node_type_cache_register_srv_type(node, type_support)) {
+  if (RCL_RET_OK !=
+      rcl_node_type_cache_register_type(node, type_support->type_hash,
+                                        type_support->type_description)) {
     RCL_SET_ERROR_MSG("Failed to register type for service");
     return RCL_RET_ERROR;
   }

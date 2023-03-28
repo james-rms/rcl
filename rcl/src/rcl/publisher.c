@@ -80,7 +80,9 @@ rcl_publisher_init(
     ROS_PACKAGE_NAME, "Initializing publisher for topic name '%s'", topic_name);
 
   // Register type.
-  if (RCL_RET_OK != rcl_node_type_cache_register_msg_type(node, type_support)) {
+  if (RCL_RET_OK !=
+      rcl_node_type_cache_register_type(node, type_support->type_hash,
+                                        type_support->type_description)) {
     RCL_SET_ERROR_MSG("Failed to register type for publication");
     goto fail;
   }
