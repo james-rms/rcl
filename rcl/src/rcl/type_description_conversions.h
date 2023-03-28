@@ -26,6 +26,10 @@ type_description_interfaces__msg__TypeDescription *
 rcl_convert_type_description_runtime_to_msg(
     const rosidl_runtime_c__type_description__TypeDescription *in);
 
+rosidl_runtime_c__type_description__TypeDescription *
+rcl_convert_type_description_msg_to_runtime(
+    const type_description_interfaces__msg__TypeDescription *in);
+
 #ifdef __cplusplus
 }
 #endif
