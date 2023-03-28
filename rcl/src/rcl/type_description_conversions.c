@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "./type_description_conversions.h"
+#include "rcl/type_description_conversions.h"
 
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/type_description/field__functions.h"
@@ -28,12 +28,15 @@ extern "C" {
 static bool individual_type_description_runtime_to_msg(
     const rosidl_runtime_c__type_description__IndividualTypeDescription *in,
     type_description_interfaces__msg__IndividualTypeDescription *out) {
-  const size_t nFields = in->fields.size;
+  if (NULL == in) {
+    return false;
+  }
+
   const bool success =
       type_description_interfaces__msg__IndividualTypeDescription__init(out) &&
       rosidl_runtime_c__String__copy(&in->type_name, &out->type_name) &&
       type_description_interfaces__msg__Field__Sequence__init(&out->fields,
-                                                              nFields);
+                                                              in->fields.size);
   if (!success) {
     goto error;
   }
@@ -80,13 +83,16 @@ error:
 static bool individual_type_description_msg_to_runtime(
     const type_description_interfaces__msg__IndividualTypeDescription *in,
     rosidl_runtime_c__type_description__IndividualTypeDescription *out) {
-  const size_t nFields = in->fields.size;
+  if (NULL == in) {
+    return false;
+  }
+
   const bool success =
       rosidl_runtime_c__type_description__IndividualTypeDescription__init(
           out) &&
       rosidl_runtime_c__String__copy(&in->type_name, &out->type_name) &&
-      rosidl_runtime_c__type_description__Field__Sequence__init(&out->fields,
-                                                                nFields);
+      rosidl_runtime_c__type_description__Field__Sequence__init(
+          &out->fields, in->fields.size);
   if (!success) {
     goto error;
   }
@@ -133,6 +139,10 @@ error:
 type_description_interfaces__msg__TypeDescription *
 rcl_convert_type_description_runtime_to_msg(
     const rosidl_runtime_c__type_description__TypeDescription *in) {
+  if (NULL == in) {
+    return NULL;
+  }
+
   // Create the object
   type_description_interfaces__msg__TypeDescription *out =
       type_description_interfaces__msg__TypeDescription__create();
@@ -176,6 +186,10 @@ rcl_convert_type_description_runtime_to_msg(
 rosidl_runtime_c__type_description__TypeDescription *
 rcl_convert_type_description_msg_to_runtime(
     const type_description_interfaces__msg__TypeDescription *in) {
+  if (NULL == in) {
+    return NULL;
+  }
+
   // Create the object
   rosidl_runtime_c__type_description__TypeDescription *out =
       rosidl_runtime_c__type_description__TypeDescription__create();
@@ -186,7 +200,8 @@ rcl_convert_type_description_msg_to_runtime(
   // init type_description
   if (!rosidl_runtime_c__type_description__IndividualTypeDescription__init(
           &out->type_description)) {
-    rosidl_runtime_c__type_description__IndividualTypeDescription__fini(&out->type_description);
+    rosidl_runtime_c__type_description__IndividualTypeDescription__fini(
+        &out->type_description);
     return NULL;
   }
 
