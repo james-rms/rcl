@@ -134,8 +134,8 @@ rcl_publisher_init(
     options->qos.avoid_ros_namespace_conventions;
   // options
   publisher->impl->options = *options;
-  // type_support
-  publisher->impl->type_support = type_support;
+  // type hash
+  publisher->impl->type_hash = *type_support->type_hash;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
   // context
   publisher->impl->context = node->context;
@@ -197,7 +197,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
     // Unregister type
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_msg_type(node, publisher->impl->type_support)) {
+    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &publisher->impl->type_hash)) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }

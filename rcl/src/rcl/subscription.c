@@ -126,8 +126,8 @@ rcl_subscription_init(
     options->qos.avoid_ros_namespace_conventions;
   // options
   subscription->impl->options = *options;
-  // type_support
-  subscription->impl->type_support = type_support;
+  // type hash
+  subscription->impl->type_hash = *type_support->type_hash;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
   TRACEPOINT(
@@ -199,7 +199,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
     }
 
     // Unregister type
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_msg_type(node, subscription->impl->type_support)) {
+    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &subscription->impl->type_hash)) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
       result = RCL_RET_ERROR;

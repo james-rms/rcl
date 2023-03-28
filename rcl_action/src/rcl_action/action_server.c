@@ -180,7 +180,7 @@ rcl_action_server_init(
   // Store reference to clock
   action_server->impl->clock = clock;
   // Store type support
-  action_server->impl->type_support = type_support;
+  action_server->impl->type_hash = *type_support->type_hash;
 
   // Initialize Timer
   ret = rcl_timer_init(
@@ -260,7 +260,7 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
     action_server->impl->goal_handles = NULL;
 
     // Unregister type
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_action_type(node, action_server->impl->type_support)) {
+    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &action_server->impl->type_hash)) {
       ret = RCL_RET_ERROR;
     }
 

@@ -105,10 +105,9 @@ rcl_ret_t rcl_node_type_cache_register_msg_type(
 
 /// Unregister a message type from the node's type cache.
 /**
- * This function uses the type hash from the given `type_support` handle to
- * unregister the associated type in the node's type cache. If the type has been
- * registered multiple times, the type will only be removed if its registration
- * count reaches 0.
+ * This function uses the given `type_hash` to unregister the associated type in
+ * the node's type cache. If the type has been registered multiple times, the
+ * type will only be removed if its registration count reaches 0.
  *
  * <hr>
  * Attribute          | Adherence
@@ -119,15 +118,15 @@ rcl_ret_t rcl_node_type_cache_register_msg_type(
  * Lock-Free          | Yes
  *
  * \param[in] node the handle to the node whose type cache should be finalized
- * \param[in] type_support type support handle
+ * \param[in] type_hash type hash handle
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_unregister_msg_type(
-    const rcl_node_t* node, const rosidl_message_type_support_t* type_support);
+rcl_ret_t rcl_node_type_cache_unregister_type(
+    const rcl_node_t* node, const rosidl_type_hash_t* type_hash);
 
 /// Register a service type with the node's type cache.
 /**
@@ -154,32 +153,6 @@ RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_register_srv_type(
     const rcl_node_t* node, const rosidl_service_type_support_t* type_support);
 
-/// Unregister a service type from the node's type cache.
-/**
- * This function uses the type hash from the given `type_support` handle to
- * unregister the associated type in the node's type cache. If the type has been
- * registered multiple times, the type will only be removed if its registration
- * count reaches 0.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] node the handle to the node whose type cache should be finalized
- * \param[in] type_support type support handle
- * \return #RCL_RET_OK if the type was successfully registered, or
- * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_ERROR if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_unregister_srv_type(
-    const rcl_node_t* node, const rosidl_service_type_support_t* type_support);
-
 /// Register a action type with the node's type cache.
 /**
  * This function extracts the type hash and type description from the given
@@ -203,32 +176,6 @@ rcl_ret_t rcl_node_type_cache_unregister_srv_type(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_register_action_type(
-    const rcl_node_t* node, const rosidl_action_type_support_t* type_support);
-
-/// Unregister a action type from the node's type cache.
-/**
- * This function uses the type hash from the given `type_support` handle to
- * unregister the associated type in the node's type cache. If the type has been
- * registered multiple times, the type will only be removed if its registration
- * count reaches 0.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] node the handle to the node whose type cache should be finalized
- * \param[in] type_support type support handle
- * \return #RCL_RET_OK if the type was successfully registered, or
- * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_ERROR if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_unregister_action_type(
     const rcl_node_t* node, const rosidl_action_type_support_t* type_support);
 
 /// Retrieve type information from the node's type cache.

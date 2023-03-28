@@ -48,9 +48,7 @@ struct rcl_service_impl_s
   rmw_service_t * rmw_handle;
   rcl_service_event_publisher_t * service_event_publisher;
   char * remapped_service_name;
-  // Assumption: the type_support used to create the service outlives any
-  // service it is used for
-  const rosidl_service_type_support_t * type_support;
+  rosidl_type_hash_t type_hash;
 };
 
 rcl_service_t
@@ -196,8 +194,8 @@ rcl_service_init(
 
   // options
   service->impl->options = *options;
-  // typesupport
-  service->impl->type_support = type_support;
+  // type hash
+  service->impl->type_hash = *type_support->type_hash;
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service initialized");
   TRACEPOINT(
@@ -262,7 +260,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
     }
 
     // Unregister type
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_srv_type(node, service->impl->type_support)) {
+    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &service->impl->type_hash)) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }

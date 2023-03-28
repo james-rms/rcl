@@ -180,25 +180,11 @@ rcl_ret_t rcl_node_type_cache_register_msg_type(
                                                 type_support->type_description);
 }
 
-rcl_ret_t rcl_node_type_cache_unregister_msg_type(
-    const rcl_node_t *node, const rosidl_message_type_support_t *type_support) {
-  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
-  return rcl_node_type_cache_unregister_type_info(node,
-                                                  type_support->type_hash);
-}
-
 rcl_ret_t rcl_node_type_cache_register_srv_type(
     const rcl_node_t *node, const rosidl_service_type_support_t *type_support) {
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   return rcl_node_type_cache_register_type_info(node, type_support->type_hash,
                                                 type_support->type_description);
-}
-
-rcl_ret_t rcl_node_type_cache_unregister_srv_type(
-    const rcl_node_t *node, const rosidl_service_type_support_t *type_support) {
-  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
-  return rcl_node_type_cache_unregister_type_info(node,
-                                                  type_support->type_hash);
 }
 
 rcl_ret_t rcl_node_type_cache_register_action_type(
@@ -208,11 +194,10 @@ rcl_ret_t rcl_node_type_cache_register_action_type(
                                                 type_support->type_description);
 }
 
-rcl_ret_t rcl_node_type_cache_unregister_action_type(
-    const rcl_node_t *node, const rosidl_action_type_support_t *type_support) {
-  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
-  return rcl_node_type_cache_unregister_type_info(node,
-                                                  type_support->type_hash);
+rcl_ret_t rcl_node_type_cache_unregister_type(
+    const rcl_node_t *node, const rosidl_type_hash_t *type_hash) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
+  return rcl_node_type_cache_unregister_type_info(node, type_hash);
 }
 
 #ifdef __cplusplus

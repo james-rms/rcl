@@ -94,10 +94,10 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_unregister_msg_type(NULL, ts));
+            rcl_node_type_cache_unregister_type(NULL, ts->type_hash));
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_unregister_msg_type(this->node_ptr, NULL));
+            rcl_node_type_cache_unregister_type(this->node_ptr, NULL));
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
@@ -138,7 +138,7 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
   const size_t nUnregistrations = nRegistrations - 1;
   for (size_t i = 0; i < nUnregistrations; ++i) {
     EXPECT_EQ(RCL_RET_OK,
-              rcl_node_type_cache_unregister_msg_type(this->node_ptr, ts));
+              rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
   }
 
   const size_t numExpectedRegistrations = nRegistrations - nUnregistrations;
@@ -149,7 +149,7 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
 
   for (size_t i = 0; i < numExpectedRegistrations; ++i) {
     EXPECT_EQ(RCL_RET_OK,
-              rcl_node_type_cache_unregister_msg_type(this->node_ptr, ts));
+              rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
   }
 
   EXPECT_EQ(RCL_RET_ERROR, rcl_node_type_cache_get_type_info(
@@ -163,6 +163,6 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
   const rosidl_message_type_support_t* ts =
       ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   EXPECT_EQ(RCL_RET_ERROR,
-            rcl_node_type_cache_unregister_msg_type(this->node_ptr, ts));
+            rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
   rcl_reset_error();
 }
