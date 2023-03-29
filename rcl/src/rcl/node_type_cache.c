@@ -25,6 +25,7 @@ extern "C" {
 
 #include "./context_impl.h"
 #include "./node_impl.h"
+#include "./node_type_cache_init.h"
 
 typedef struct rcl_type_info_with_registration_count_t {
   /// Counter to keep track of registrations
@@ -46,7 +47,7 @@ int cmp_type_hash(const void *val1, const void *val2) {
   return memcmp(hash1->value, hash2->value, ROSIDL_TYPE_HASH_SIZE);
 }
 
-rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
+rcl_ret_t rcl_node_type_cache_init(rcl_node_t *node) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
 
@@ -64,7 +65,7 @@ rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t *node) {
+rcl_ret_t rcl_node_type_cache_fini(rcl_node_t *node) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
 
@@ -128,7 +129,7 @@ rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t *node,
 }
 
 rcl_ret_t rcl_node_type_cache_register_type(
-    const rcl_node_t *node, const rosidl_type_hash_t *type_hash,
+    rcl_node_t *node, const rosidl_type_hash_t *type_hash,
     const rosidl_runtime_c__type_description__TypeDescription
         *type_description) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
@@ -174,7 +175,7 @@ rcl_ret_t rcl_node_type_cache_register_type(
 }
 
 rcl_ret_t rcl_node_type_cache_unregister_type(
-    const rcl_node_t *node, const rosidl_type_hash_t *type_hash) {
+    rcl_node_t *node, const rosidl_type_hash_t *type_hash) {
   rcl_type_info_with_registration_count_t type_info;
 
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);

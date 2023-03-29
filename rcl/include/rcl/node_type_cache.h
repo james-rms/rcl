@@ -30,52 +30,6 @@ typedef struct rcl_type_info_t {
   type_description_interfaces__msg__TypeDescription* type_description;
 } rcl_type_info_t;
 
-/// Initialize the node's type cache.
-/**
- * This function initializes hash map of the node's type cache such that types
- * can be registered and retrieved.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] node the handle to the node whose type cache should be initialized
- * \return #RCL_RET_OK if the node's type cache was successfully initialized, or
- * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
- * \return #RCL_RET_ERROR if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_init(const rcl_node_t* node);
-
-/// Finalize the node's type cache.
-/**
- * This function clears the hash map of the node's type cache and deallocates
- * used memory.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] node the handle to the node whose type cache should be finalized
- * \return #RCL_RET_OK if the node's type cache was successfully finalized, or
- * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
- * \return #RCL_RET_ERROR if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t* node);
-
 /// Register a type with the node's type cache.
 /**
  * This function registers the given type, uniquely identified by the type_hash,
@@ -101,7 +55,7 @@ rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t* node);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_register_type(
-    const rcl_node_t* node, const rosidl_type_hash_t* type_hash,
+    rcl_node_t* node, const rosidl_type_hash_t* type_hash,
     const rosidl_runtime_c__type_description__TypeDescription*
         type_description);
 
@@ -129,7 +83,7 @@ rcl_ret_t rcl_node_type_cache_register_type(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_unregister_type(
-    const rcl_node_t* node, const rosidl_type_hash_t* type_hash);
+    rcl_node_t* node, const rosidl_type_hash_t* type_hash);
 
 /// Retrieve type information from the node's type cache.
 /**
@@ -158,7 +112,7 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t* node,
-                                            const rosidl_type_hash_t *type_hash,
+                                            const rosidl_type_hash_t* type_hash,
                                             rcl_type_info_t* type_info);
 
 #ifdef __cplusplus

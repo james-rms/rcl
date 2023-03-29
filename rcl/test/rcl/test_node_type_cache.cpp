@@ -79,12 +79,6 @@ TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
       ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   rcl_type_info_t type_info;
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_init(NULL));
-  rcl_reset_error();
-
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_fini(NULL));
-  rcl_reset_error();
-
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
             rcl_node_type_cache_register_type(NULL, ts->type_hash,
                                               ts->type_description));
