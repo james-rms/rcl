@@ -53,6 +53,7 @@ extern "C"
 #include "rmw/validate_node_name.h"
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/type_description/type_description__functions.h"
+#include "rosidl_runtime_c/type_description/type_source__functions.h"
 #include "tracetools/tracetools.h"
 #include "type_description_interfaces/srv/get_type_description.h"
 
@@ -618,13 +619,21 @@ static void rcl_node_type_cache_handle_service_call(
     rcl_node_type_cache_get_type_info(node, &type_hash, &type_info);
 
   if (RCUTILS_RET_OK == ret) {
-    // TODO(achim-k): Populate response
-    response.successful = true;
-    type_description_interfaces__msg__TypeDescription__copy(
+    response.successful = type_description_interfaces__msg__TypeDescription__copy(
       type_info.type_description, &response.type_description);
+
+    if (request.include_type_sources) {
+      response.successful = type_description_interfaces__msg__TypeSource__Sequence__copy(
+        type_info.type_sources, &response.type_sources);
+    }
+
+    if (!response.successful) {
+      rosidl_runtime_c__String__assign(
+        &response.failure_reason,
+        "Failed to populate response");
+    }
   } else {
     response.successful = false;
-    // TODO(achim-k): Populate reason
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
       "Type '%s' not found in type cache",

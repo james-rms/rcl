@@ -98,6 +98,8 @@ rcl_ret_t rcl_node_type_cache_fini(rcl_node_t * node)
 
     type_description_interfaces__msg__TypeDescription__destroy(
       type_info_with_registrations.type_info.type_description);
+    type_description_interfaces__msg__TypeSource__Sequence__destroy(
+      type_info_with_registrations.type_info.type_sources);
 
     hash_map_ret = rcutils_hash_map_get_next_key_and_data(
       &node->impl->registered_types_by_type_hash, NULL, &key,
@@ -139,12 +141,14 @@ rcl_ret_t rcl_node_type_cache_get_type_info(
 rcl_ret_t rcl_node_type_cache_register_type(
   const rcl_node_t * node, const rosidl_type_hash_t * type_hash,
   const rosidl_runtime_c__type_description__TypeDescription
-  * type_description)
+  * type_description,
+  const rosidl_runtime_c__type_description__TypeSource__Sequence * type_description_sources)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_description, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(type_description_sources, RCL_RET_INVALID_ARGUMENT);
 
   rcl_type_info_with_registration_count_t type_info_with_registrations;
 
@@ -174,6 +178,13 @@ rcl_ret_t rcl_node_type_cache_register_type(
     RCL_CHECK_FOR_NULL_WITH_MSG(
       type_info_with_registrations.type_info.type_description,
       "converting type description struct failed", return RCL_RET_ERROR);
+
+    // Convert type sources struct to type sources message struct.
+    type_info_with_registrations.type_info.type_sources =
+      rcl_convert_type_source_sequence_runtime_to_msg(type_description_sources);
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+      type_info_with_registrations.type_info.type_description,
+      "converting type sources struct failed", return RCL_RET_ERROR);
   }
 
   // Update the hash map entry.
@@ -228,6 +239,8 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
 
     type_description_interfaces__msg__TypeDescription__destroy(
       type_info.type_info.type_description);
+    type_description_interfaces__msg__TypeSource__Sequence__destroy(
+      type_info.type_info.type_sources);
   }
 
   return RCL_RET_OK;

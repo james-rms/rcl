@@ -17,9 +17,10 @@
 #include "rcl/type_description_conversions.h"
 #include "rosidl_runtime_c/message_type_support_struct.h"
 #include "rosidl_runtime_c/type_description/type_description__functions.h"
+#include "rosidl_runtime_c/type_description/type_source__functions.h"
 #include "test_msgs/msg/basic_types.h"
 
-TEST(TestTypeDescriptionConversions, conversion_round_trip) {
+TEST(TestTypeDescriptionConversions, type_description_conversion_round_trip) {
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
 
@@ -41,9 +42,36 @@ TEST(TestTypeDescriptionConversions, conversion_round_trip) {
     type_description_rt);
 }
 
-TEST(TestTypeDescriptionConversions, invalid_input) {
+TEST(TestTypeDescriptionConversions, type_description_invalid_input) {
   EXPECT_TRUE(NULL == rcl_convert_type_description_runtime_to_msg(NULL));
   EXPECT_TRUE(NULL == rcl_convert_type_description_msg_to_runtime(NULL));
+}
+
+TEST(TestTypeDescriptionConversions, type_source_sequence_conversion_round_trip) {
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+
+  type_description_interfaces__msg__TypeSource__Sequence * type_sources_msg =
+    rcl_convert_type_source_sequence_runtime_to_msg(ts->type_description_sources);
+  EXPECT_TRUE(NULL != type_sources_msg);
+
+  rosidl_runtime_c__type_description__TypeSource__Sequence * type_sources_rt =
+    rcl_convert_type_source_sequence_msg_to_runtime(type_sources_msg);
+  EXPECT_TRUE(NULL != type_sources_rt);
+
+  EXPECT_TRUE(
+    rosidl_runtime_c__type_description__TypeSource__Sequence__are_equal(
+      type_sources_rt, ts->type_description_sources));
+
+  type_description_interfaces__msg__TypeSource__Sequence__destroy(
+    type_sources_msg);
+  rosidl_runtime_c__type_description__TypeSource__Sequence__destroy(
+    type_sources_rt);
+}
+
+TEST(TestTypeDescriptionConversions, type_source_sequence_invalid_input) {
+  EXPECT_TRUE(NULL == rcl_convert_type_source_sequence_msg_to_runtime(NULL));
+  EXPECT_TRUE(NULL == rcl_convert_type_source_sequence_runtime_to_msg(NULL));
 }
 
 int main(int argc, char ** argv)

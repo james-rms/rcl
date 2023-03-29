@@ -19,7 +19,9 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 #include "rosidl_runtime_c/type_description/type_description__struct.h"
+#include "rosidl_runtime_c/type_description/type_source__struct.h"
 #include "type_description_interfaces/msg/type_description.h"
+#include "type_description_interfaces/msg/type_source.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,8 +29,8 @@ extern "C" {
 
 typedef struct rcl_type_info_t
 {
-  // TODO(achim-k): Add remaining fields
   type_description_interfaces__msg__TypeDescription * type_description;
+  type_description_interfaces__msg__TypeSource__Sequence * type_sources;
 } rcl_type_info_t;
 
 /// Register a type with the node's type cache.
@@ -48,6 +50,7 @@ typedef struct rcl_type_info_t
  * \param[in] node the handle to the node whose type cache should be finalized
  * \param[in] type_hash hash of the type
  * \param[in] type_description type description struct
+ * \param[in] type_description_sources type description sources struct
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
@@ -57,8 +60,9 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_register_type(
   const rcl_node_t * node, const rosidl_type_hash_t * type_hash,
-  const rosidl_runtime_c__type_description__TypeDescription *
-  type_description);
+  const rosidl_runtime_c__type_description__TypeDescription * type_description,
+  const rosidl_runtime_c__type_description__TypeSource__Sequence * type_description_sources
+);
 
 /// Unregister a message type from the node's type cache.
 /**

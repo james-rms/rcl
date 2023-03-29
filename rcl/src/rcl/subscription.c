@@ -74,7 +74,7 @@ rcl_subscription_init(
   if (RCL_RET_OK !=
     rcl_node_type_cache_register_type(
       node, type_support->type_hash,
-      type_support->type_description))
+      type_support->type_description, type_support->type_description_sources))
   {
     RCL_SET_ERROR_MSG("Failed to register type for subscription");
     goto fail;

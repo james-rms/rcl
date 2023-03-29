@@ -18,7 +18,9 @@
 #include "rcl/macros.h"
 #include "rcl/visibility_control.h"
 #include "rosidl_runtime_c/type_description/type_description__struct.h"
+#include "rosidl_runtime_c/type_description/type_source__struct.h"
 #include "type_description_interfaces/msg/type_description.h"
+#include "type_description_interfaces/msg/type_source.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,6 +75,56 @@ RCL_WARN_UNUSED
 rosidl_runtime_c__type_description__TypeDescription *
 rcl_convert_type_description_msg_to_runtime(
   const type_description_interfaces__msg__TypeDescription * in);
+
+/// Convert type sources sequence runtime struct to msg struct.
+/**
+ * This function converts a rosidl_runtime_c__type_description__TypeSource__Sequence
+ * struct to the corresponding type_description_interfaces__msg__TypeSource__Sequence
+ * struct. The retrieved pointer shall be destroyed with
+ * `type_description_interfaces__msg__TypeSource__Sequence__destroy() after` use.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] in the handle to the type sources sequence struct
+ * \return a valid pointer to the msg struct, or
+ * \return NULL if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+type_description_interfaces__msg__TypeSource__Sequence *
+rcl_convert_type_source_sequence_runtime_to_msg(
+  const rosidl_runtime_c__type_description__TypeSource__Sequence * in);
+
+/// Convert type sources sequece msg struct to a rosidl runtime struct.
+/**
+ * This function converts a rosidl_runtime_c__type_description__TypeSource__Sequence
+ * struct to the corresponding type_description_interfaces__msg__TypeSource__Sequence
+ * struct. The retrieved pointer shall be destroyed with
+ * `type_description_interfaces__msg__TypeSource__Sequence__destroy() after` use.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] in the handle to the type sources sequence struct
+ * \return a valid pointer to the msg struct, or
+ * \return NULL if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rosidl_runtime_c__type_description__TypeSource__Sequence *
+rcl_convert_type_source_sequence_msg_to_runtime(
+  const type_description_interfaces__msg__TypeSource__Sequence * in);
 
 #ifdef __cplusplus
 }

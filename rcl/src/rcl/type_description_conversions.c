@@ -18,6 +18,7 @@
 #include "rosidl_runtime_c/type_description/field__functions.h"
 #include "rosidl_runtime_c/type_description/individual_type_description__functions.h"
 #include "rosidl_runtime_c/type_description/type_description__functions.h"
+#include "rosidl_runtime_c/type_description/type_source__functions.h"
 #include "type_description_interfaces/msg/detail/field__functions.h"
 #include "type_description_interfaces/msg/individual_type_description.h"
 
@@ -234,7 +235,95 @@ rcl_convert_type_description_msg_to_runtime(
   return out;
 
 fail:
-  rosidl_runtime_c__type_description__TypeDescription__fini(out);
+  rosidl_runtime_c__type_description__TypeDescription__destroy(out);
+  return NULL;
+}
+
+type_description_interfaces__msg__TypeSource__Sequence *
+rcl_convert_type_source_sequence_runtime_to_msg(
+  const rosidl_runtime_c__type_description__TypeSource__Sequence * in)
+{
+  if (NULL == in) {
+    return NULL;
+  }
+
+  // Create the object
+  type_description_interfaces__msg__TypeSource__Sequence * out =
+    type_description_interfaces__msg__TypeSource__Sequence__create(in->size);
+  if (NULL == out) {
+    return NULL;
+  }
+
+  // Copy type sources
+  for (size_t i = 0; i < in->size; ++i) {
+    // type_name
+    if (!rosidl_runtime_c__String__copy(
+        &(in->data[i].type_name), &(out->data[i].type_name)))
+    {
+      goto fail;
+    }
+    // encoding
+    if (!rosidl_runtime_c__String__copy(
+        &(in->data[i].encoding), &(out->data[i].encoding)))
+    {
+      goto fail;
+    }
+    // raw_file_contents
+    if (!rosidl_runtime_c__String__copy(
+        &(in->data[i].raw_file_contents), &(out->data[i].raw_file_contents)))
+    {
+      goto fail;
+    }
+  }
+
+  return out;
+
+fail:
+  type_description_interfaces__msg__TypeSource__Sequence__destroy(out);
+  return NULL;
+}
+
+rosidl_runtime_c__type_description__TypeSource__Sequence *
+rcl_convert_type_source_sequence_msg_to_runtime(
+  const type_description_interfaces__msg__TypeSource__Sequence * in)
+{
+  if (NULL == in) {
+    return NULL;
+  }
+
+  // Create the object
+  rosidl_runtime_c__type_description__TypeSource__Sequence * out =
+    rosidl_runtime_c__type_description__TypeSource__Sequence__create(in->size);
+  if (NULL == out) {
+    return NULL;
+  }
+
+  // Copy type sources
+  for (size_t i = 0; i < in->size; ++i) {
+    // type_name
+    if (!rosidl_runtime_c__String__copy(
+        &(in->data[i].type_name), &(out->data[i].type_name)))
+    {
+      goto fail;
+    }
+    // encoding
+    if (!rosidl_runtime_c__String__copy(
+        &(in->data[i].encoding), &(out->data[i].encoding)))
+    {
+      goto fail;
+    }
+    // raw_file_contents
+    if (!rosidl_runtime_c__String__copy(
+        &(in->data[i].raw_file_contents), &(out->data[i].raw_file_contents)))
+    {
+      goto fail;
+    }
+  }
+
+  return out;
+
+fail:
+  rosidl_runtime_c__type_description__TypeSource__Sequence__destroy(out);
   return NULL;
 }
 
