@@ -27,7 +27,7 @@ extern "C" {
 
 typedef struct rcl_type_info_t {
   // TODO(achim-k): Add remaining fields
-  const type_description_interfaces__msg__TypeDescription* type_description;
+  type_description_interfaces__msg__TypeDescription* type_description;
 } rcl_type_info_t;
 
 /// Initialize the node's type cache.
@@ -46,6 +46,7 @@ typedef struct rcl_type_info_t {
  * \param[in] node the handle to the node whose type cache should be initialized
  * \return #RCL_RET_OK if the node's type cache was successfully initialized, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -68,6 +69,7 @@ rcl_ret_t rcl_node_type_cache_init(const rcl_node_t* node);
  * \param[in] node the handle to the node whose type cache should be finalized
  * \return #RCL_RET_OK if the node's type cache was successfully finalized, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -93,6 +95,7 @@ rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t* node);
  * \param[in] type_description type description struct
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -120,6 +123,7 @@ rcl_ret_t rcl_node_type_cache_register_type(
  * \param[in] type_hash type hash handle
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -147,6 +151,7 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
  * \param[out] type_info pointer to the type info struct that will be populated
  * \return #RCL_RET_OK if type information was retrieved successfully
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
  * \return #RCL_RET_NOT_INIT if node's type cache has not been initialized, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */

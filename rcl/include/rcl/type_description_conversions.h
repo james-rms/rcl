@@ -28,6 +28,8 @@ extern "C" {
 /**
  * This function converts a rosidl_runtime_c__type_description__TypeDescription
  * to the corresponding type_description_interfaces/msg/TypeDescription struct.
+ * The retrieved pointer shall be destroyed with
+ * `type_description_interfaces__msg__TypeDescription__destroy() after` use.
  *
  * <hr>
  * Attribute          | Adherence
@@ -51,7 +53,8 @@ rcl_convert_type_description_runtime_to_msg(
 /**
  * This function converts a type_description_interfaces/msg/TypeDescription
  * to the corresponding rosidl_runtime_c__type_description__TypeDescription
- * struct.
+ * struct. The retrieved pointer shall be destroyed with
+ * `rosidl_runtime_c__type_description__TypeDescription__destroy() after` use.
  *
  * <hr>
  * Attribute          | Adherence

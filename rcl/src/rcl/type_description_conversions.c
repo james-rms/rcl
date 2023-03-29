@@ -33,7 +33,6 @@ static bool individual_type_description_runtime_to_msg(
   }
 
   const bool success =
-      type_description_interfaces__msg__IndividualTypeDescription__init(out) &&
       rosidl_runtime_c__String__copy(&in->type_name, &out->type_name) &&
       type_description_interfaces__msg__Field__Sequence__init(&out->fields,
                                                               in->fields.size);
@@ -88,8 +87,6 @@ static bool individual_type_description_msg_to_runtime(
   }
 
   const bool success =
-      rosidl_runtime_c__type_description__IndividualTypeDescription__init(
-          out) &&
       rosidl_runtime_c__String__copy(&in->type_name, &out->type_name) &&
       rosidl_runtime_c__type_description__Field__Sequence__init(
           &out->fields, in->fields.size);
@@ -150,37 +147,33 @@ rcl_convert_type_description_runtime_to_msg(
     return NULL;
   }
 
-  // init type_description
-  if (!type_description_interfaces__msg__IndividualTypeDescription__init(
-          &out->type_description)) {
-    type_description_interfaces__msg__TypeDescription__fini(out);
-    return NULL;
-  }
-
   // init referenced_type_descriptions with the correct size
   if (!type_description_interfaces__msg__IndividualTypeDescription__Sequence__init(
           &out->referenced_type_descriptions,
           in->referenced_type_descriptions.size)) {
-    type_description_interfaces__msg__TypeDescription__fini(out);
-    return NULL;
+    goto fail;
   }
 
-  bool success = individual_type_description_runtime_to_msg(
-      &in->type_description, &out->type_description);
-
-  for (size_t i = 0; success && i < in->referenced_type_descriptions.size;
-       ++i) {
-    success &= individual_type_description_runtime_to_msg(
-        &in->referenced_type_descriptions.data[i],
-        &out->referenced_type_descriptions.data[i]);
+  // Convert individual type description
+  if (!individual_type_description_runtime_to_msg(&in->type_description,
+                                                  &out->type_description)) {
+    goto fail;
   }
 
-  if (!success) {
-    type_description_interfaces__msg__TypeDescription__fini(out);
-    return NULL;
+  // Convert referenced type descriptions
+  for (size_t i = 0; i < in->referenced_type_descriptions.size; ++i) {
+    if (!individual_type_description_runtime_to_msg(
+            &in->referenced_type_descriptions.data[i],
+            &out->referenced_type_descriptions.data[i])) {
+      goto fail;
+    }
   }
 
   return out;
+
+fail:
+  type_description_interfaces__msg__TypeDescription__destroy(out);
+  return NULL;
 }
 
 rosidl_runtime_c__type_description__TypeDescription *
@@ -197,38 +190,31 @@ rcl_convert_type_description_msg_to_runtime(
     return NULL;
   }
 
-  // init type_description
-  if (!rosidl_runtime_c__type_description__IndividualTypeDescription__init(
-          &out->type_description)) {
-    rosidl_runtime_c__type_description__IndividualTypeDescription__fini(
-        &out->type_description);
-    return NULL;
-  }
-
   // init referenced_type_descriptions with the correct size
   if (!rosidl_runtime_c__type_description__IndividualTypeDescription__Sequence__init(
           &out->referenced_type_descriptions,
           in->referenced_type_descriptions.size)) {
-    rosidl_runtime_c__type_description__TypeDescription__fini(out);
-    return NULL;
+    goto fail;
   }
 
-  bool success = individual_type_description_msg_to_runtime(
-      &in->type_description, &out->type_description);
-
-  for (size_t i = 0; success && i < in->referenced_type_descriptions.size;
-       ++i) {
-    success &= individual_type_description_msg_to_runtime(
-        &in->referenced_type_descriptions.data[i],
-        &out->referenced_type_descriptions.data[i]);
+  if (!individual_type_description_msg_to_runtime(&in->type_description,
+                                                  &out->type_description)) {
+    goto fail;
   }
 
-  if (!success) {
-    rosidl_runtime_c__type_description__TypeDescription__fini(out);
-    return NULL;
+  for (size_t i = 0; i < in->referenced_type_descriptions.size; ++i) {
+    if (!individual_type_description_msg_to_runtime(
+            &in->referenced_type_descriptions.data[i],
+            &out->referenced_type_descriptions.data[i])) {
+      goto fail;
+    }
   }
 
   return out;
+
+fail:
+  rosidl_runtime_c__type_description__TypeDescription__fini(out);
+  return NULL;
 }
 
 #ifdef __cplusplus

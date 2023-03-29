@@ -48,6 +48,7 @@ int cmp_type_hash(const void *val1, const void *val2) {
 
 rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
 
   rcutils_ret_t ret = rcutils_hash_map_init(
       &node->impl->registered_types_by_type_hash, 2, sizeof(rosidl_type_hash_t),
@@ -65,6 +66,37 @@ rcl_ret_t rcl_node_type_cache_init(const rcl_node_t *node) {
 
 rcl_ret_t rcl_node_type_cache_fini(const rcl_node_t *node) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
+
+  // Clean up any remaining types.
+  rosidl_type_hash_t key;
+  rcl_type_info_with_registration_count_t type_info_with_registrations;
+  rcutils_ret_t hash_map_ret = rcutils_hash_map_get_next_key_and_data(
+      &node->impl->registered_types_by_type_hash, NULL, &key,
+      &type_info_with_registrations);
+
+  if (RCUTILS_RET_NOT_INITIALIZED == hash_map_ret) {
+    return RCL_RET_NOT_INIT;
+  }
+
+  while (RCUTILS_RET_OK == hash_map_ret) {
+    hash_map_ret = rcutils_hash_map_unset(
+        &node->impl->registered_types_by_type_hash, &key);
+    if (hash_map_ret != RCUTILS_RET_OK) {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+          "Failed to clear out type informations [%s] during shutdown; memory "
+          "will be leaked.",
+          rcutils_get_error_string().str);
+      break;
+    }
+
+    type_description_interfaces__msg__TypeDescription__destroy(
+        type_info_with_registrations.type_info.type_description);
+
+    hash_map_ret = rcutils_hash_map_get_next_key_and_data(
+        &node->impl->registered_types_by_type_hash, NULL, &key,
+        &type_info_with_registrations);
+  }
 
   rcutils_ret_t rcutils_ret =
       rcutils_hash_map_fini(&node->impl->registered_types_by_type_hash);
@@ -76,6 +108,7 @@ rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t *node,
                                             const rosidl_type_hash_t *type_hash,
                                             rcl_type_info_t *type_info) {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_info, RCL_RET_INVALID_ARGUMENT);
 
@@ -87,6 +120,8 @@ rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t *node,
   if (RCUTILS_RET_OK == ret) {
     *type_info = type_info_with_registrations.type_info;
     return RCL_RET_OK;
+  } else if (RCUTILS_RET_NOT_INITIALIZED == ret) {
+    return RCL_RET_NOT_INIT;
   }
 
   return RCL_RET_ERROR;
@@ -96,25 +131,12 @@ rcl_ret_t rcl_node_type_cache_register_type(
     const rcl_node_t *node, const rosidl_type_hash_t *type_hash,
     const rosidl_runtime_c__type_description__TypeDescription
         *type_description) {
-  char *type_hash_str = NULL;
-  rcl_type_info_with_registration_count_t type_info;
-
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_description, RCL_RET_INVALID_ARGUMENT);
 
-  // Convert hash to string
-  if (RCUTILS_RET_OK !=
-      rosidl_stringify_type_hash(type_hash, rcutils_get_default_allocator(),
-                                 &type_hash_str)) {
-    RCL_SET_ERROR_MSG("Failed to stringify type hash");
-    return RCL_RET_ERROR;
-  }
-
-  // TODO(achim-k): Remove log statement
-  const char *typeName = type_description->type_description.type_name.data;
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "R: %s (%s)", type_hash_str,
-                         typeName);
+  rcl_type_info_with_registration_count_t type_info_with_registrations;
 
   // If the type already exists, we only have to increment the registration
   // count.
@@ -122,31 +144,29 @@ rcl_ret_t rcl_node_type_cache_register_type(
                                   type_hash)) {
     if (RCUTILS_RET_OK !=
         rcutils_hash_map_get(&node->impl->registered_types_by_type_hash,
-                             type_hash, &type_info)) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-          "Failed to retrieve type info for type '%s'", type_hash_str);
+                             type_hash, &type_info_with_registrations)) {
+      RCL_SET_ERROR_MSG("Failed to retrieve type info");
       return RCL_RET_ERROR;
     }
 
-    type_info.numRegistrations++;
+    type_info_with_registrations.numRegistrations++;
   } else {
     // First registration of this type
-    type_info.numRegistrations = 1;
+    type_info_with_registrations.numRegistrations = 1;
 
     // Convert type description struct to type description message struct.
-    type_info.type_info.type_description =
+    type_info_with_registrations.type_info.type_description =
         rcl_convert_type_description_runtime_to_msg(type_description);
-    RCL_CHECK_FOR_NULL_WITH_MSG(type_info.type_info.type_description,
-                                "converting type description struct failed",
-                                return RCL_RET_ERROR);
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+        type_info_with_registrations.type_info.type_description,
+        "converting type description struct failed", return RCL_RET_ERROR);
   }
 
   // Update the hash map entry.
   if (RCUTILS_RET_OK !=
       rcutils_hash_map_set(&node->impl->registered_types_by_type_hash,
-                           type_hash, &type_info)) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Failed to update type info for type '%s'", type_hash_str);
+                           type_hash, &type_info_with_registrations)) {
+    RCL_SET_ERROR_MSG("Failed to update type info");
     return RCL_RET_ERROR;
   }
 
@@ -155,28 +175,16 @@ rcl_ret_t rcl_node_type_cache_register_type(
 
 rcl_ret_t rcl_node_type_cache_unregister_type(
     const rcl_node_t *node, const rosidl_type_hash_t *type_hash) {
-  char *type_hash_str = NULL;
   rcl_type_info_with_registration_count_t type_info;
 
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_hash, RCL_RET_INVALID_ARGUMENT);
-
-  // Convert hash to string
-  if (RCUTILS_RET_OK !=
-      rosidl_stringify_type_hash(type_hash, rcutils_get_default_allocator(),
-                                 &type_hash_str)) {
-    RCL_SET_ERROR_MSG("Failed to stringify type hash");
-    return RCL_RET_ERROR;
-  }
-
-  // TODO(achim-k): Remove log statement
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "U: %s", type_hash_str);
 
   if (RCUTILS_RET_OK !=
       rcutils_hash_map_get(&node->impl->registered_types_by_type_hash,
                            type_hash, &type_info)) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to deregister type '%s'",
-                                         type_hash_str);
+    RCL_SET_ERROR_MSG("Failed to unregister type");
     return RCL_RET_ERROR;
   }
 
@@ -184,18 +192,19 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
     if (RCUTILS_RET_OK !=
         rcutils_hash_map_set(&node->impl->registered_types_by_type_hash,
                              type_hash, &type_info)) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-          "Failed to update type info for type '%s'", type_hash_str);
+      RCL_SET_ERROR_MSG("Failed to update type info");
       return RCL_RET_ERROR;
     }
   } else {
     if (RCUTILS_RET_OK !=
         rcutils_hash_map_unset(&node->impl->registered_types_by_type_hash,
                                type_hash)) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-          "Failed to unregister type info for type '%s'", type_hash_str);
+      RCL_SET_ERROR_MSG("Failed to unregister type info");
       return RCL_RET_ERROR;
     }
+
+    type_description_interfaces__msg__TypeDescription__destroy(
+        type_info.type_info.type_description);
   }
 
   return RCL_RET_OK;

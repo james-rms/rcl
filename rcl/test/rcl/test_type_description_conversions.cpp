@@ -23,18 +23,21 @@ TEST(TestTypeDescriptionConversions, conversion_round_trip) {
   const rosidl_message_type_support_t* ts =
       ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
 
-  const type_description_interfaces__msg__TypeDescription*
-      type_description_msg =
-          rcl_convert_type_description_runtime_to_msg(ts->type_description);
+  type_description_interfaces__msg__TypeDescription* type_description_msg =
+      rcl_convert_type_description_runtime_to_msg(ts->type_description);
   EXPECT_TRUE(NULL != type_description_msg);
 
-  const rosidl_runtime_c__type_description__TypeDescription*
-      type_description_rt =
-          rcl_convert_type_description_msg_to_runtime(type_description_msg);
+  rosidl_runtime_c__type_description__TypeDescription* type_description_rt =
+      rcl_convert_type_description_msg_to_runtime(type_description_msg);
   EXPECT_TRUE(NULL != type_description_rt);
 
   EXPECT_TRUE(rosidl_runtime_c__type_description__TypeDescription__are_equal(
       type_description_rt, ts->type_description));
+
+  type_description_interfaces__msg__TypeDescription__destroy(
+      type_description_msg);
+  rosidl_runtime_c__type_description__TypeDescription__destroy(
+      type_description_rt);
 }
 
 TEST(TestTypeDescriptionConversions, invalid_input) {
