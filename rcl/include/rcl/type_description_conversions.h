@@ -47,7 +47,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 type_description_interfaces__msg__TypeDescription *
 rcl_convert_type_description_runtime_to_msg(
-    const rosidl_runtime_c__type_description__TypeDescription *in);
+  const rosidl_runtime_c__type_description__TypeDescription * in);
 
 /// Convert type description msg struct to a rosidl runtime struct.
 /**
@@ -72,7 +72,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rosidl_runtime_c__type_description__TypeDescription *
 rcl_convert_type_description_msg_to_runtime(
-    const type_description_interfaces__msg__TypeDescription *in);
+  const type_description_interfaces__msg__TypeDescription * in);
 
 #ifdef __cplusplus
 }

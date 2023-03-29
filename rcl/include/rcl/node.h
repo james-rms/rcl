@@ -576,7 +576,7 @@ rcl_get_disable_loaned_message(bool * disable_loaned_message);
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_description_service_init(rcl_node_t* node);
+rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node);
 
 /// Finalizes the node's ~/get_type_description service.
 /**
@@ -599,7 +599,7 @@ rcl_ret_t rcl_node_type_description_service_init(rcl_node_t* node);
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_description_service_fini(rcl_node_t* node);
+rcl_ret_t rcl_node_type_description_service_fini(rcl_node_t * node);
 
 #ifdef __cplusplus
 }

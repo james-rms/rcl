@@ -26,26 +26,29 @@
 #include "rcutils/env.h"
 
 #ifdef RMW_IMPLEMENTATION
-#define CLASSNAME_(NAME, SUFFIX) NAME##__##SUFFIX
+#define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 #define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
 #else
 #define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-class CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION)
-    : public ::testing::Test {
- public:
-  rcl_context_t* context_ptr;
-  rcl_node_t* node_ptr;
-  void SetUp() {
+class CLASSNAME (TestNodeTypeCacheFixture, RMW_IMPLEMENTATION)
+  : public ::testing::Test
+{
+public:
+  rcl_context_t * context_ptr;
+  rcl_node_t * node_ptr;
+  void SetUp()
+  {
     rcl_ret_t ret;
     {
       rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
       ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+      {
         EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options))
-            << rcl_get_error_string().str;
+          << rcl_get_error_string().str;
       });
       this->context_ptr = new rcl_context_t;
       *this->context_ptr = rcl_get_zero_initialized_context();
@@ -56,12 +59,14 @@ class CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION)
     *this->node_ptr = rcl_get_zero_initialized_node();
     constexpr char name[] = "test_type_cache_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr,
-                        &node_options);
+    ret = rcl_node_init(
+      this->node_ptr, name, "", this->context_ptr,
+      &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  void TearDown() {
+  void TearDown()
+  {
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -73,80 +78,105 @@ class CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION)
   }
 };
 
-TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
-       test_type_cache_invalid_args) {
-  const rosidl_message_type_support_t* ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+TEST_F(
+  CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
+  test_type_cache_invalid_args) {
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   rcl_type_info_t type_info;
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_register_type(NULL, ts->type_hash,
-                                              ts->type_description));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_node_type_cache_register_type(
+      NULL, ts->type_hash,
+      ts->type_description));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_register_type(this->node_ptr, NULL,
-                                              ts->type_description));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_node_type_cache_register_type(
+      this->node_ptr, NULL,
+      ts->type_description));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_register_type(
-                                          this->node_ptr, ts->type_hash, NULL));
-  rcl_reset_error();
-
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_unregister_type(NULL, ts->type_hash));
-  rcl_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_unregister_type(this->node_ptr, NULL));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_register_type(
+      this->node_ptr, ts->type_hash, NULL));
   rcl_reset_error();
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT,
-            rcl_node_type_cache_get_type_info(NULL, ts->type_hash, &type_info));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_node_type_cache_unregister_type(NULL, ts->type_hash));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_get_type_info(
-                                          this->node_ptr, NULL, &type_info));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_node_type_cache_unregister_type(this->node_ptr, NULL));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_get_type_info(
-                                          this->node_ptr, ts->type_hash, NULL));
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_node_type_cache_get_type_info(NULL, ts->type_hash, &type_info));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_get_type_info(
+      this->node_ptr, NULL, &type_info));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_get_type_info(
+      this->node_ptr, ts->type_hash, NULL));
   rcl_reset_error();
 }
 
-TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
-       test_type_registration_count) {
-  const rosidl_message_type_support_t* ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+TEST_F(
+  CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
+  test_type_registration_count) {
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   rcl_type_info_t type_info;
 
   // Register once
-  EXPECT_EQ(RCL_RET_OK,
-            rcl_node_type_cache_register_type(this->node_ptr, ts->type_hash,
-                                              ts->type_description));
-  EXPECT_EQ(RCL_RET_OK, rcl_node_type_cache_get_type_info(
-                            this->node_ptr, ts->type_hash, &type_info));
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_type_cache_register_type(
+      this->node_ptr, ts->type_hash,
+      ts->type_description));
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_node_type_cache_get_type_info(
+      this->node_ptr, ts->type_hash, &type_info));
 
   // Unregister once and confirm that it got removed from the type cache
-  EXPECT_EQ(RCL_RET_OK,
-            rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
-  EXPECT_EQ(RCL_RET_ERROR, rcl_node_type_cache_get_type_info(
-                               this->node_ptr, ts->type_hash, &type_info));
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
+  EXPECT_EQ(
+    RCL_RET_ERROR, rcl_node_type_cache_get_type_info(
+      this->node_ptr, ts->type_hash, &type_info));
   rcl_reset_error();
 
   // Register twice and unregister once. Type info should still be available
-  EXPECT_EQ(RCL_RET_OK,
-            rcl_node_type_cache_register_type(this->node_ptr, ts->type_hash,
-                                              ts->type_description));
-  EXPECT_EQ(RCL_RET_OK,
-            rcl_node_type_cache_register_type(this->node_ptr, ts->type_hash,
-                                              ts->type_description));
-  EXPECT_EQ(RCL_RET_OK,
-            rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
-  EXPECT_EQ(RCL_RET_OK, rcl_node_type_cache_get_type_info(
-                            this->node_ptr, ts->type_hash, &type_info));
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_type_cache_register_type(
+      this->node_ptr, ts->type_hash,
+      ts->type_description));
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_type_cache_register_type(
+      this->node_ptr, ts->type_hash,
+      ts->type_description));
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_node_type_cache_get_type_info(
+      this->node_ptr, ts->type_hash, &type_info));
 }
 
-TEST_F(CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
-       test_invalid_unregistration) {
-  const rosidl_message_type_support_t* ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  EXPECT_EQ(RCL_RET_ERROR,
-            rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
+TEST_F(
+  CLASSNAME(TestNodeTypeCacheFixture, RMW_IMPLEMENTATION),
+  test_invalid_unregistration) {
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  EXPECT_EQ(
+    RCL_RET_ERROR,
+    rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
   rcl_reset_error();
 }

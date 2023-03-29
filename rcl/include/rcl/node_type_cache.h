@@ -25,9 +25,10 @@
 extern "C" {
 #endif
 
-typedef struct rcl_type_info_t {
+typedef struct rcl_type_info_t
+{
   // TODO(achim-k): Add remaining fields
-  type_description_interfaces__msg__TypeDescription* type_description;
+  type_description_interfaces__msg__TypeDescription * type_description;
 } rcl_type_info_t;
 
 /// Register a type with the node's type cache.
@@ -55,9 +56,9 @@ typedef struct rcl_type_info_t {
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_register_type(
-    rcl_node_t* node, const rosidl_type_hash_t* type_hash,
-    const rosidl_runtime_c__type_description__TypeDescription*
-        type_description);
+  rcl_node_t * node, const rosidl_type_hash_t * type_hash,
+  const rosidl_runtime_c__type_description__TypeDescription *
+  type_description);
 
 /// Unregister a message type from the node's type cache.
 /**
@@ -83,7 +84,7 @@ rcl_ret_t rcl_node_type_cache_register_type(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_unregister_type(
-    rcl_node_t* node, const rosidl_type_hash_t* type_hash);
+  rcl_node_t * node, const rosidl_type_hash_t * type_hash);
 
 /// Retrieve type information from the node's type cache.
 /**
@@ -111,9 +112,10 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_ret_t rcl_node_type_cache_get_type_info(const rcl_node_t* node,
-                                            const rosidl_type_hash_t* type_hash,
-                                            rcl_type_info_t* type_info);
+rcl_ret_t rcl_node_type_cache_get_type_info(
+  const rcl_node_t * node,
+  const rosidl_type_hash_t * type_hash,
+  rcl_type_info_t * type_info);
 
 #ifdef __cplusplus
 }
