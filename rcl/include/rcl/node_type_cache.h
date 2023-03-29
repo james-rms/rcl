@@ -56,7 +56,7 @@ typedef struct rcl_type_info_t
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_register_type(
-  rcl_node_t * node, const rosidl_type_hash_t * type_hash,
+  const rcl_node_t * node, const rosidl_type_hash_t * type_hash,
   const rosidl_runtime_c__type_description__TypeDescription *
   type_description);
 
@@ -84,7 +84,7 @@ rcl_ret_t rcl_node_type_cache_register_type(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_unregister_type(
-  rcl_node_t * node, const rosidl_type_hash_t * type_hash);
+  const rcl_node_t * node, const rosidl_type_hash_t * type_hash);
 
 /// Retrieve type information from the node's type cache.
 /**
